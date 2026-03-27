@@ -1,113 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>TruthLens Times</title>
+<title>TruthLens AI News</title>
 
 <style>
-body {
-    margin: 0;
-    font-family: Georgia, "Times New Roman", serif;
-    background: #f5f5f5;
-    color: #111;
-}
-
-/* TOP STRIP */
-.top-strip {
-    background:#000;
-    color:#fff;
-    font-size:12px;
-    padding:5px 10px;
-    display:flex;
-    justify-content:space-between;
-}
+body { margin:0; font-family:Georgia, serif; background:#f5f5f5; }
 
 /* HEADER */
 .header {
-    text-align:center;
-    font-size:42px;
-    font-weight:bold;
-    padding:10px;
-    background:white;
-    border-bottom:2px solid #ccc;
-}
-
-/* NAV */
-.nav {
-    display:flex;
-    justify-content:center;
-    gap:20px;
-    padding:10px;
-    background:white;
-    border-bottom:1px solid #ddd;
-    flex-wrap:wrap;
-}
-
-.nav span {
-    cursor:pointer;
-    font-weight:bold;
-}
-
-/* BREAKING */
-.breaking {
     background:#bb1919;
     color:white;
-    padding:8px;
-    overflow:hidden;
-}
-
-.breaking span {
-    display:inline-block;
-    white-space:nowrap;
-    animation:scroll 120s linear infinite;
-}
-
-@keyframes scroll {
-    0% { transform:translateX(100%); }
-    100% { transform:translateX(-100%); }
-}
-
-/* SEARCH */
-.search-box {
+    padding:15px;
+    font-size:28px;
     text-align:center;
-    padding:10px;
-}
-
-/* LAYOUT */
-.container {
-    display:grid;
-    grid-template-columns: 2fr 1fr;
-    gap:20px;
-    padding:20px;
-}
-
-/* HERO */
-.hero img {
-    width:100%;
-    height:400px;
-    object-fit:cover;
-}
-
-.hero h2 {
-    font-size:30px;
-}
-
-/* SIDE */
-.side div {
-    display:flex;
-    gap:10px;
-    margin-bottom:10px;
-    cursor:pointer;
+    position:sticky;
+    top:0;
+    z-index:1000;
+    font-weight:bold;
+    letter-spacing:1px;
 }
 
 /* SECTION */
-.section {
-    padding:20px;
-    background:white;
-    margin:10px;
-}
+.section { padding:20px; }
 
 .section h2 {
-    border-bottom:2px solid #000;
+    border-bottom:2px solid #bb1919;
+    padding-bottom:5px;
 }
 
 /* GRID */
@@ -119,8 +37,16 @@ body {
 
 /* CARD */
 .card {
+    border:1px solid #ddd;
+    padding:10px;
+    background:white;
     cursor:pointer;
-    border-bottom:1px solid #ccc;
+    transition:0.3s;
+}
+
+.card:hover {
+    transform:scale(1.02);
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
 
 .card img {
@@ -129,329 +55,214 @@ body {
     object-fit:cover;
 }
 
-/* MODAL */
-.modal {
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
+/* HERO */
+.hero img {
     width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.6);
+    height:350px;
+    object-fit:cover;
 }
 
-.modal-content {
-    background:white;
-    margin:10% auto;
-    padding:20px;
-    width:60%;
+/* COLORS */
+.verified { color:green; font-weight:bold; }
+.medium { color:orange; font-weight:bold; }
+.low { color:red; font-weight:bold; }
+
+.reason { font-size:12px; color:gray; }
+
+/* BUTTON */
+button {
+    margin-top:5px;
+    cursor:pointer;
+    background:#bb1919;
+    color:white;
+    border:none;
+    padding:5px 10px;
 }
 
-/* ARTICLE VIEW */
-.article-view {
-    padding:20px;
+/* TRENDING */
+#trending span {
+    margin-right:10px;
+    font-weight:bold;
 }
 
-.hidden { display:none; }
-
-button { cursor:pointer; margin-top:5px; }
-
+/* LOADER */
+.loader {
+    text-align:center;
+    font-size:20px;
+    padding:50px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="top-strip">
-<span>Delhi Edition</span>
-<span id="time"></span>
-</div>
+<div class="header">📰 TruthLens AI Newspaper</div>
 
-<div class="header">TruthLens Times</div>
-
-<div class="nav">
-<span onclick="showHome()">Home</span>
-<span onclick="showSaved()">Saved</span>
-<span onclick="filterCategory('Politics')">Politics</span>
-<span onclick="filterCategory('Technology')">Technology</span>
-<span onclick="filterCategory('Sports')">Sports</span>
-<span onclick="filterCategory('Business')">Business</span>
-</div>
-
-<div class="search-box">
-<input id="search" placeholder="Search news..." style="padding:8px; width:50%;">
-</div>
-
-<div class="breaking">
-<span id="ticker"></span>
-</div>
-
-<!-- HOME -->
-<div id="homePage">
-
-<div class="container">
-<div id="hero" class="hero"></div>
-<div id="side" class="side"></div>
-</div>
+<div id="hero" class="section hero"></div>
 
 <div class="section">
 <h2>⭐ Verified News</h2>
 <div id="verified" class="grid"></div>
 </div>
 
+<div class="section">
+<h2>📈 Trending</h2>
+<div id="trending"></div>
+</div>
+
 <div id="sections"></div>
 
-</div>
-
-<!-- ARTICLE PAGE -->
-<div id="articlePage" class="hidden article-view"></div>
-
-<!-- SAVED -->
-<div id="savedPage" class="hidden section">
-<h2>Saved Articles</h2>
-<div id="savedNews" class="grid"></div>
-</div>
-
-<!-- MODAL -->
-<div id="modal" class="modal">
-<div class="modal-content">
-<span onclick="closeModal()">✖</span>
-<h3>Sources</h3>
-<div id="modalContent"></div>
-</div>
-</div>
+<div id="loading" class="loader">Loading news...</div>
 
 <script>
 
-let fullData=[];
-let page=0;
+let fullData = [];
+let page = 0;
 
-/* TIME */
-setInterval(()=>{
-document.getElementById("time").innerText=new Date().toLocaleString();
-},1000);
-
-/* NAV */
-function showHome(){
-hideAll();
-document.getElementById("homePage").classList.remove("hidden");
+function getColor(status){
+    if(status==="Verified") return "verified";
+    if(status==="Medium Trust") return "medium";
+    return "low";
 }
 
-function showSaved(){
-hideAll();
-document.getElementById("savedPage").classList.remove("hidden");
-loadSaved();
+function openArticle(url){
+    window.open(url,"_blank");
 }
 
-function hideAll(){
-document.getElementById("homePage").classList.add("hidden");
-document.getElementById("savedPage").classList.add("hidden");
-document.getElementById("articlePage").classList.add("hidden");
+function toggleSources(id, event){
+    event.stopPropagation();
+    const el = document.getElementById("sources-"+id);
+    el.style.display = el.style.display === "none" ? "block" : "none";
 }
 
-/* ⭐ TOI STYLE ARTICLE PAGE */
-function openArticleView(n){
+// ✅ FIXED MAIN FUNCTION
+async function loadNews(){
 
-hideAll();
-document.getElementById("articlePage").classList.remove("hidden");
+    try {
+        const res = await fetch("https://truthlens-backend-12tt.onrender.com/news");
+        const data = await res.json();
 
-let related = fullData
-    .filter(x => x.category === n.category && x.id !== n.id)
-    .slice(0,5);
+        console.log("DATA:", data);
 
-document.getElementById("articlePage").innerHTML = `
+        document.getElementById("loading").style.display = "none";
 
-<div style="max-width:1100px; margin:auto; display:grid; grid-template-columns:2fr 1fr; gap:30px;">
+        if (!Array.isArray(data) || data.length === 0){
+            document.body.innerHTML = "<h2 style='text-align:center;'>⚠️ No news available</h2>";
+            return;
+        }
 
-<div>
+        fullData = data;
 
-<h1 style="font-size:34px;">${n.title}</h1>
+        // HERO
+        const main = data[0];
 
-<p style="color:gray;">${n.source || "TruthLens"} | ${new Date().toLocaleString()}</p>
+        document.getElementById("hero").innerHTML = `
+            <img src="${main.image || 'https://picsum.photos/800/400'}">
+            <h2>${main.title}</h2>
+            <p>${main.description || ''}</p>
+        `;
 
-<p style="font-weight:bold; color:${
-n.credibility_score>=75 ? 'green' :
-n.credibility_score>=50 ? 'orange' : 'red'
-}">
+        // VERIFIED
+        const verified = data.filter(n => n.status === "Verified");
+
+        document.getElementById("verified").innerHTML =
+            verified.slice(0,6).map(cardHTML).join("");
+
+        // TRENDING
+        const wordCount = {};
+        data.forEach(n=>{
+            n.title.split(" ").forEach(word=>{
+                word = word.toLowerCase();
+                if(word.length > 4){
+                    wordCount[word] = (wordCount[word] || 0) + 1;
+                }
+            });
+        });
+
+        document.getElementById("trending").innerHTML =
+            Object.entries(wordCount)
+            .sort((a,b)=>b[1]-a[1])
+            .slice(0,10)
+            .map(t=>`<span>#${t[0]}</span>`)
+            .join("");
+
+        renderNews(data.slice(0,10));
+
+    } catch(err){
+        console.error(err);
+        document.body.innerHTML = "<h2 style='text-align:center;'>⚠️ Failed to load news</h2>";
+    }
+}
+
+// CARD
+function cardHTML(n){
+return `
+<div class="card" onclick="openArticle('${n.url}')">
+
+<img src="${n.image || 'https://picsum.photos/400'}">
+
+<h3>${n.title}</h3>
+
+<p class="${getColor(n.status)}">
 🧠 ${n.status} (${n.credibility_score}%)
 </p>
 
-<img src="${n.image}" style="width:100%; height:400px; object-fit:cover; margin:15px 0;">
+<p class="reason">${n.reason}</p>
 
-<p style="font-size:18px; line-height:1.8;">
-${n.description}
-</p>
-
-<p style="font-size:18px; line-height:1.8;">
-${n.description} ${n.description}
-</p>
-
-<button onclick="openModal(${JSON.stringify(n.matched_titles)}, event)">
-🔍 View Sources
+<button onclick="toggleSources('${n.id}', event); return false;">
+Show Sources
 </button>
 
-<button onclick="saveArticle(${JSON.stringify(n)})">
-💾 Save Article
-</button>
-
-<br><br>
-<button onclick="showHome()">⬅ Back</button>
-
-</div>
-
-<div>
-<h3 style="border-bottom:2px solid black;">More News</h3>
-
-${related.map(r=>`
-<div style="display:flex; gap:10px; margin-bottom:15px; cursor:pointer;"
-onclick='openArticleView(${JSON.stringify(r)})'>
-<img src="${r.image}" style="width:90px; height:70px; object-fit:cover;">
-<p>${r.title}</p>
-</div>
-`).join("")}
-
+<div id="sources-${n.id}" style="display:none; font-size:12px; color:gray;">
+${(n.matched_titles || []).map(t => `<p>📰 ${t}</p>`).join("")}
 </div>
 
 </div>
 `;
 }
 
-/* MODAL */
-function openModal(s,e){
-e.stopPropagation();
-modalContent.innerHTML=s.map(x=>`<p>${x}</p>`).join("");
-modal.style.display="block";
-}
-function closeModal(){ modal.style.display="none"; }
+// RENDER
+function renderNews(data){
 
-/* SAVE */
-function saveArticle(a){
-let s=JSON.parse(localStorage.getItem("savedNews"))||[];
-s.push(a);
-localStorage.setItem("savedNews",JSON.stringify(s));
-alert("Saved");
-}
+    const sections = document.getElementById("sections");
 
-function deleteSaved(i){
-let s=JSON.parse(localStorage.getItem("savedNews"))||[];
-s.splice(i,1);
-localStorage.setItem("savedNews",JSON.stringify(s));
-loadSaved();
-}
+    const grouped = {};
 
-function loadSaved(){
-let s=JSON.parse(localStorage.getItem("savedNews"))||[];
-savedNews.innerHTML=s.map((n,i)=>`
-<div class="card">
-<img src="${n.image}">
-<h3>${n.title}</h3>
-<button onclick='openArticleView(${JSON.stringify(n)})'>Open</button>
-<button onclick="deleteSaved(${i})">Delete</button>
-</div>`).join("");
+    data.forEach(n=>{
+        if(!grouped[n.category]) grouped[n.category] = [];
+        grouped[n.category].push(n);
+    });
+
+    Object.keys(grouped).forEach(cat=>{
+
+        sections.innerHTML += `
+        <div class="section">
+            <h2>${cat}</h2>
+            <div class="grid">
+                ${grouped[cat].map(cardHTML).join("")}
+            </div>
+        </div>
+        `;
+    });
 }
 
-/* SEARCH */
-document.getElementById("search").addEventListener("input", function(){
-let val=this.value.toLowerCase();
-let filtered=fullData.filter(n =>
-n.title.toLowerCase().includes(val)
-);
-renderFiltered(filtered);
+// INFINITE SCROLL
+window.addEventListener("scroll", () => {
+
+    if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 200){
+
+        page++;
+
+        const next = fullData.slice(page*10, (page+1)*10);
+
+        if(next.length){
+            renderNews(next);
+        }
+    }
+
 });
 
-function filterCategory(cat){
-let filtered=fullData.filter(n=>n.category===cat);
-renderFiltered(filtered);
-}
-
-function renderFiltered(data){
-document.getElementById("sections").innerHTML="";
-render(data);
-}
-
-/* LOAD */
-async function loadNews(){
-let res=await  fetch("https://truthlens-backend-12tt.onrender.com");
-let data=await res.json();
-fullData=data;
-
-hero.innerHTML=`<img src="${data[0].image}"><h2>${data[0].title}</h2>`;
-
-side.innerHTML=data.slice(1,6).map(n=>`
-<div onclick='openArticleView(${JSON.stringify(n)})'>
-<img src="${n.image}" style="width:80px;height:60px;">
-<p>${n.title}</p>
-</div>`).join("");
-
-verified.innerHTML=data.filter(n=>n.credibility_score>=75)
-.slice(0,6)
-.map(card).join("");
-
-ticker.innerText=data.map(n=>n.title).join(" 🔴 ");
-
-render(data.slice(0,10));
-}
-
-/* CARD */
-function card(n){
-return `<div class="card" onclick='openArticleView(${JSON.stringify(n)})'>
-
-<img src="${n.image}">
-
-<h3>${n.title}</h3>
-
-<p style="font-weight:bold; color:${
-n.credibility_score>=75 ? 'green' :
-n.credibility_score>=50 ? 'orange' : 'red'
-}">
- ${n.status} (${n.credibility_score}%)
-</p>
-
-<p id="desc-${n.id}">
-${n.description.slice(0,100)}...
-</p>
-
-<button onclick="expand('${n.id}', \`${n.description}\`, event)">Read More</button>
-
-<button onclick="openModal(${JSON.stringify(n.matched_titles)},event)">Sources</button>
-
-<button onclick="saveArticle(${JSON.stringify(n)});event.stopPropagation();">Save</button>
-
-</div>`;
-}
-
-/* EXPAND */
-function expand(id, text, e){
-e.stopPropagation();
-document.getElementById("desc-"+id).innerText=text;
-}
-
-/* RENDER */
-function render(data){
-const sections=document.getElementById("sections");
-
-let grouped={};
-data.forEach(n=>{
-if(!grouped[n.category]) grouped[n.category]=[];
-grouped[n.category].push(n);
-});
-
-Object.keys(grouped).forEach(cat=>{
-sections.innerHTML+=`
-<div class="section">
-<h2>${cat}</h2>
-<div class="grid">${grouped[cat].map(card).join("")}</div>
-</div>`;
-});
-}
-
-/* SCROLL */
-window.addEventListener("scroll",()=>{
-if(window.innerHeight+window.scrollY>=document.body.offsetHeight-200){
-page++;
-render(fullData.slice(page*10,(page+1)*10));
-}
-});
-
+// START
 loadNews();
 
 </script>
