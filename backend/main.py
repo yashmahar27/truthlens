@@ -4,7 +4,7 @@ from news_engine import fetch_news
 
 app = FastAPI()
 
-# 🔥 CORS FIX (important for frontend)
+# ✅ CORS FIX
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,14 +13,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ✅ ROOT TEST
 @app.get("/")
 def home():
-    return {"message": "TruthLens API running"}
+    return {"message": "TruthLens Backend Running 🚀"}
 
+# ✅ NEWS ROUTE (THIS WAS MISSING OR WRONG)
 @app.get("/news")
 def get_news():
-    try:
-        news = fetch_news()  # ✅ NO ARGUMENT
-        return news
-    except Exception as e:
-        return {"error": str(e), "message": "Failed to fetch news"}
+    return fetch_news()
