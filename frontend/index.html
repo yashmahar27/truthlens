@@ -370,7 +370,7 @@ render(data);
 
 /* LOAD */
 async function loadNews(){
-let res=await fetch("http://127.0.0.1:8000/news");
+let res=await  fetch("https://your-backend-url.onrender.com/news");
 let data=await res.json();
 fullData=data;
 
