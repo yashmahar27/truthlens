@@ -4,92 +4,78 @@
 <title>TruthLens AI News</title>
 
 <style>
-body { margin:0; font-family:Georgia, serif; background:#f5f5f5; }
+body { margin:0; font-family:Georgia; background:#f6f6f6; }
 
-/* HEADER */
 .header {
     background:#bb1919;
     color:white;
-    padding:15px;
-    font-size:28px;
+    padding:18px;
+    font-size:30px;
     text-align:center;
     position:sticky;
     top:0;
-    z-index:1000;
-    font-weight:bold;
-    letter-spacing:1px;
 }
 
-/* SECTION */
-.section { padding:20px; }
-
-.section h2 {
-    border-bottom:2px solid #bb1919;
-    padding-bottom:5px;
-}
-
-/* GRID */
-.grid {
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:15px;
-}
-
-/* CARD */
-.card {
-    border:1px solid #ddd;
+.navbar {
+    display:flex;
+    gap:20px;
     padding:10px;
     background:white;
+    overflow:auto;
+}
+
+.section { margin:20px; }
+
+.section h2 {
+    border-left:6px solid #bb1919;
+    padding-left:10px;
+}
+
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:20px;
+}
+
+.card {
+    background:white;
+    border-radius:10px;
+    overflow:hidden;
     cursor:pointer;
     transition:0.3s;
 }
 
 .card:hover {
-    transform:scale(1.02);
-    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    transform:translateY(-5px);
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
 }
 
 .card img {
     width:100%;
-    height:160px;
+    height:180px;
     object-fit:cover;
 }
 
-/* HERO */
-.hero img {
-    width:100%;
-    height:350px;
-    object-fit:cover;
-}
+.verified { color:green; }
+.medium { color:orange; }
+.low { color:red; }
 
-/* COLORS */
-.verified { color:green; font-weight:bold; }
-.medium { color:orange; font-weight:bold; }
-.low { color:red; font-weight:bold; }
-
-.reason { font-size:12px; color:gray; }
-
-/* BUTTON */
 button {
-    margin-top:5px;
-    cursor:pointer;
     background:#bb1919;
     color:white;
     border:none;
     padding:5px 10px;
+    margin:10px;
+    cursor:pointer;
 }
 
-/* TRENDING */
 #trending span {
-    margin-right:10px;
-    font-weight:bold;
-}
-
-/* LOADER */
-.loader {
-    text-align:center;
-    font-size:20px;
-    padding:50px;
+    background:white;
+    padding:6px 10px;
+    margin:5px;
+    border-radius:20px;
+    display:inline-block;
+    cursor:pointer;
 }
 </style>
 </head>
@@ -98,7 +84,15 @@ button {
 
 <div class="header">📰 TruthLens AI Newspaper</div>
 
-<div id="hero" class="section hero"></div>
+<div class="navbar">
+    <span onclick="filterCategory('All')">All</span>
+    <span onclick="filterCategory('Politics')">Politics</span>
+    <span onclick="filterCategory('Technology')">Technology</span>
+    <span onclick="filterCategory('Sports')">Sports</span>
+    <span onclick="filterCategory('Business')">Business</span>
+</div>
+
+<div id="hero" class="section"></div>
 
 <div class="section">
 <h2>⭐ Verified News</h2>
@@ -112,157 +106,163 @@ button {
 
 <div id="sections"></div>
 
-<div id="loading" class="loader">Loading news...</div>
-
 <script>
 
 let fullData = [];
 let page = 0;
 
+/* CATEGORY FILTER */
+function filterCategory(cat){
+    document.getElementById("sections").innerHTML="";
+    if(cat==="All"){
+        renderNews(fullData.slice(0,10));
+    } else {
+        renderNews(fullData.filter(n=>n.category===cat));
+    }
+}
+
+/* COLOR */
 function getColor(status){
     if(status==="Verified") return "verified";
     if(status==="Medium Trust") return "medium";
     return "low";
 }
 
+/* OPEN */
 function openArticle(url){
     window.open(url,"_blank");
 }
 
-function toggleSources(id, event){
-    event.stopPropagation();
-    const el = document.getElementById("sources-"+id);
-    el.style.display = el.style.display === "none" ? "block" : "none";
+/* SOURCES */
+function toggleSources(id,e){
+    e.stopPropagation();
+    let el=document.getElementById("sources-"+id);
+    el.style.display = el.style.display==="none"?"block":"none";
 }
 
-// ✅ FIXED MAIN FUNCTION
+/* 🔥 ADVANCED TRENDING */
+function generateTrending(data){
+
+    const wordCount = {};
+
+    const stopWords = [
+        "the","and","for","with","this","that","from","have","has",
+        "was","were","will","are","about","into","after","before",
+        "their","they","them","said","says","you","your","over",
+        "more","than","just","been","being","his","her","its"
+    ];
+
+    data.forEach(n => {
+        n.title.toLowerCase().split(" ").forEach(word => {
+
+            word = word.replace(/[^a-z]/g, "");
+
+            if(word.length > 3 && !stopWords.includes(word)){
+                wordCount[word] = (wordCount[word] || 0) + 1;
+            }
+        });
+    });
+
+    const trending = Object.entries(wordCount)
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0,10);
+
+    document.getElementById("trending").innerHTML =
+        trending.map(([word]) =>
+            `<span onclick="filterTrending('${word}')">#${word}</span>`
+        ).join("");
+}
+
+/* FILTER TRENDING */
+function filterTrending(word){
+    const filtered = fullData.filter(n =>
+        n.title.toLowerCase().includes(word)
+    );
+    document.getElementById("sections").innerHTML="";
+    renderNews(filtered);
+}
+
+/* LOAD NEWS */
 async function loadNews(){
 
-    try {
-        const res = await fetch("https://truthlens-backend-12tt.onrender.com/news");
-        const data = await res.json();
+    const res = await fetch("https://truthlens-backend-12tt.onrender.com/news");
+    const data = await res.json();
 
-        console.log("DATA:", data);
+    if(!Array.isArray(data)) return;
 
-        document.getElementById("loading").style.display = "none";
+    fullData = data;
 
-        if (!Array.isArray(data) || data.length === 0){
-            document.body.innerHTML = "<h2 style='text-align:center;'>⚠️ No news available</h2>";
-            return;
-        }
+    /* HERO */
+    document.getElementById("hero").innerHTML = `
+        <img src="${data[0].image}" style="width:100%;height:300px;object-fit:cover;">
+        <h2>${data[0].title}</h2>
+    `;
 
-        fullData = data;
+    /* VERIFIED */
+    const verified = data
+        .filter(n=>n.credibility_score>=70)
+        .sort((a,b)=>b.credibility_score-a.credibility_score);
 
-        // HERO
-        const main = data[0];
+    document.getElementById("verified").innerHTML =
+        verified.slice(0,6).map(card).join("");
 
-        document.getElementById("hero").innerHTML = `
-            <img src="${main.image || 'https://picsum.photos/800/400'}">
-            <h2>${main.title}</h2>
-            <p>${main.description || ''}</p>
-        `;
+    /* TRENDING */
+    generateTrending(data);
 
-        // VERIFIED
-        const verified = data.filter(n => n.status === "Verified");
-
-        document.getElementById("verified").innerHTML =
-            verified.slice(0,6).map(cardHTML).join("");
-
-        // TRENDING
-        const wordCount = {};
-        data.forEach(n=>{
-            n.title.split(" ").forEach(word=>{
-                word = word.toLowerCase();
-                if(word.length > 4){
-                    wordCount[word] = (wordCount[word] || 0) + 1;
-                }
-            });
-        });
-
-        document.getElementById("trending").innerHTML =
-            Object.entries(wordCount)
-            .sort((a,b)=>b[1]-a[1])
-            .slice(0,10)
-            .map(t=>`<span>#${t[0]}</span>`)
-            .join("");
-
-        renderNews(data.slice(0,10));
-
-    } catch(err){
-        console.error(err);
-        document.body.innerHTML = "<h2 style='text-align:center;'>⚠️ Failed to load news</h2>";
-    }
+    renderNews(data.slice(0,10));
 }
 
-// CARD
-function cardHTML(n){
+/* CARD */
+function card(n){
 return `
 <div class="card" onclick="openArticle('${n.url}')">
-
-<img src="${n.image || 'https://picsum.photos/400'}">
-
+<img src="${n.image}">
 <h3>${n.title}</h3>
-
 <p class="${getColor(n.status)}">
-🧠 ${n.status} (${n.credibility_score}%)
+${n.status} (${n.credibility_score}%)
 </p>
-
-<p class="reason">${n.reason}</p>
-
-<button onclick="toggleSources('${n.id}', event); return false;">
-Show Sources
+<button onclick="toggleSources('${n.id}',event);return false;">
+Sources
 </button>
-
-<div id="sources-${n.id}" style="display:none; font-size:12px; color:gray;">
-${(n.matched_titles || []).map(t => `<p>📰 ${t}</p>`).join("")}
+<div id="sources-${n.id}" style="display:none;font-size:12px;">
+${(n.matched_titles||[]).map(t=>`<p>${t}</p>`).join("")}
 </div>
-
 </div>
 `;
 }
 
-// RENDER
+/* RENDER */
 function renderNews(data){
 
-    const sections = document.getElementById("sections");
+    const sections=document.getElementById("sections");
 
-    const grouped = {};
+    const grouped={};
 
     data.forEach(n=>{
-        if(!grouped[n.category]) grouped[n.category] = [];
+        if(!grouped[n.category]) grouped[n.category]=[];
         grouped[n.category].push(n);
     });
 
     Object.keys(grouped).forEach(cat=>{
-
-        sections.innerHTML += `
+        sections.innerHTML+=`
         <div class="section">
             <h2>${cat}</h2>
             <div class="grid">
-                ${grouped[cat].map(cardHTML).join("")}
+                ${grouped[cat].map(card).join("")}
             </div>
-        </div>
-        `;
+        </div>`;
     });
 }
 
-// INFINITE SCROLL
-window.addEventListener("scroll", () => {
-
-    if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 200){
-
+/* SCROLL */
+window.addEventListener("scroll",()=>{
+    if(window.innerHeight+window.scrollY>=document.body.offsetHeight-200){
         page++;
-
-        const next = fullData.slice(page*10, (page+1)*10);
-
-        if(next.length){
-            renderNews(next);
-        }
+        const next=fullData.slice(page*10,(page+1)*10);
+        if(next.length) renderNews(next);
     }
-
 });
 
-// START
 loadNews();
 
 </script>
